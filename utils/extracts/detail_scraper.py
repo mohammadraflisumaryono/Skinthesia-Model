@@ -1,29 +1,29 @@
-# skincare_scraper/extract/category_scraper.py
+# skincare_scraper/extract/detail_scraper.py
 
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
 import time
 
-def get_categories(driver, limit=10):
+def get_product_details(driver, product_url):
     """
-    Scrap daftar kategori skincare dan link-nya dari halaman kategori utama.
+    Scrap detail dari halaman produk individual.
     """
-    url = "https://femaledaily.com/category/skincare"
-    driver.get(url)
-    time.sleep(3)
+    driver.get(product_url)
+    time.sleep(2)
 
-    categories = []
-    root = driver.find_element(By.CLASS_NAME, 'category-landing-list')
-    columns = root.find_elements(By.CLASS_NAME, 'category-landing-column')
+    try:
+        name = driver.find_element(By.CLASS_NAME, "product-profile__name").text.strip()
+        brand = driver.find_element(By.CLASS_NAME, "product-profile__brand").text.strip()
+        rating = driver.find_element(By.CLASS_NAME, "product-profile__rating-value").text.strip()
+        reviews = driver.find_element(By.CLASS_NAME, "product-profile__rating-count").text.strip()
+        desc = driver.find_element(By.CLASS_NAME, "product-detail__description").text.strip()
+    except Exception:
+        return None
 
-    for col in columns:
-        links = col.find_elements(By.TAG_NAME, "a")
-        for link in links:
-            categories.append({
-                "name": link.text.strip(),
-                "url": link.get_attribute("href")
-            })
-            if len(categories) >= limit:
-                return categories
-    return categories
+    return {
+        "name": name,
+        "brand": brand,
+        "rating": rating,
+        "total_reviews": reviews,
+        "description": desc,
+        "url": product_url
+    }
