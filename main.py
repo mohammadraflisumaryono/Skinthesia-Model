@@ -35,12 +35,12 @@ def run_scraper():
         categories = get_categories(limit=3)  # 3 kategori untuk percobaan
 
         for cat in categories:
-            logging.info(f"\n📂 Memproses kategori: {cat['name']} ({cat['url']})")
-            products = get_products_from_category(driver, cat['url'], max_products=10)
+            logging.info(f"\n Memproses kategori: {cat['name']} ({cat['url']})")
+            products = get_products_from_category(driver, cat['url'], max_products=100)
 
-            logging.info(f"📦 Jumlah produk ditemukan: {len(products)}")
+            logging.info(f" Jumlah produk ditemukan: {len(products)}")
             for i, prod in enumerate(products, 1):
-                logging.info(f"[{i}] {prod['brand']} - {prod['name']} | ⭐ {prod['rating']} ({prod['total_reviews']} reviews)")
+                logging.info(f"[{i}] {prod['brand']} - {prod['name']} |  {prod['rating']} ({prod['total_reviews']} reviews)")
     finally:
         driver.quit()
         logging.info("Scraping selesai dan browser ditutup.")

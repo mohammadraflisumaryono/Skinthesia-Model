@@ -3,7 +3,7 @@
 from selenium.webdriver.common.by import By
 import time
 
-def get_products_from_category(driver, category_url, max_products=50):
+def get_products_from_category(driver, category_url, max_products=100):
     """
     Scrap daftar produk dari suatu kategori di Female Daily.
     """

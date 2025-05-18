@@ -8,7 +8,7 @@ def get_product_details(driver, product_url):
     Scrap detail dari halaman produk individual.
     """
     driver.get(product_url)
-    time.sleep(2)
+    time.sleep(1)
 
     try:
         name = driver.find_element(By.CLASS_NAME, "product-profile__name").text.strip()
