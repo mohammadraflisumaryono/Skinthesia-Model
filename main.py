@@ -5,13 +5,19 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from utils.extracts.category_scraper import get_categories
 from utils.extracts.product_scraper import get_products_from_category
+import os
 
 def setup_logger():
+    # buat folder logs jika belum ada
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
+    # setup logging
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
         handlers=[
-            logging.FileHandler("scraper_log.txt", mode='w'),
+            logging.FileHandler("logs/scraper_log.txt", mode='w'),
             logging.StreamHandler()
         ]
     )
