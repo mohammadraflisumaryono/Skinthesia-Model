@@ -1,79 +1,101 @@
+# utils/extracts/review_scraper.py
+
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from bs4 import BeautifulSoup
 import time
 
 def scrape_reviews(driver, max_pages=5):
-    """
-    Scrape review pengguna dari halaman produk Female Daily.
-    Mengambil data: usia, tipe kulit, rating, direkomendasikan/tidak, periode penggunaan, tanggal review, isi review.
-    """
     reviews = []
     page = 1
 
     while page <= max_pages:
         time.sleep(2)
+
         try:
-            review_blocks = driver.find_elements(By.CLASS_NAME, "review-detail")
+            # Klik tombol read-more jika ada untuk memperluas komentar
+            read_more_buttons = driver.find_elements(By.CSS_SELECTOR, "span.read-more")
+            for btn in read_more_buttons:
+                try:
+                    driver.execute_script("arguments[0].click();", btn)
+                except:
+                    continue
+
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            review_blocks = soup.find_all('div', class_='review-detail d-flex')
 
             for block in review_blocks:
                 try:
-                    # Ambil informasi pengguna (usia, skin type, dsb)
-                    skin_info = block.find_element(By.CLASS_NAME, "skin").text.strip().split(",")
-                    age = skin_info[3].strip() if len(skin_info) > 3 else None
-                    skin_type = skin_info[0].strip() if len(skin_info) > 0 else None
+                    # Username (optional)
+                    try:
+                        username = block.find('p', class_='username').text.strip()
+                    except:
+                        username = None
 
-                    # Rating (jumlah bintang full)
-                    stars = block.find_elements(By.CLASS_NAME, "icon-ic_big_star_full")
+                    # Skin info: oiltype, shade, tone, age
+                    skin_info = block.find('p', class_='skin').text.strip().split(',')
+                    skin_type = skin_info[0].strip() if len(skin_info) > 0 else None
+                    age = skin_info[3].strip() if len(skin_info) > 3 else None
+
+                    # Rating
+                    stars = block.find_all('i', class_='icon-ic_big_star_full')
                     rating = len(stars)
 
-                    # Apakah direkomendasikan
-                    try:
-                        recommend_text = block.find_element(By.CLASS_NAME, "recommend").text.lower()
-                        recommended = "recommend" in recommend_text and "doesn't" not in recommend_text
-                    except:
+                    # Recommended
+                    rec_tag = block.find('p', class_='recommend')
+                    if rec_tag:
+                        rec_text = rec_tag.find('b').text.lower()
+                        recommended = "doesn't" not in rec_text
+                    else:
                         recommended = None
 
-                    # Isi review
+                    # Review text
                     try:
-                        review_content = block.find_element(By.CLASS_NAME, "text-content").text.strip()
+                        review_text = block.find('p', class_='text-content').text.strip()
                     except:
-                        review_content = None
+                        review_text = None
 
-                    # Tanggal
+                    # Review date
                     try:
-                        review_date = block.find_element(By.CLASS_NAME, "review-date").text.strip()
+                        review_date = block.find('p', class_='date review-date').text.strip()
                     except:
                         review_date = None
 
                     # Usage period
                     try:
-                        usage_info = block.find_element(By.CLASS_NAME, "information-wrapper").find_elements(By.TAG_NAME, "b")
-                        usage_period = usage_info[0].text.strip() if len(usage_info) > 0 else None
+                        info_wrap = block.find('div', class_='information-wrapper')
+                        usage_period = info_wrap.find_all('b')[0].text.strip()
                     except:
                         usage_period = None
 
                     reviews.append({
-                        "age": age,
+                        "username": username,
                         "skin_type": skin_type,
+                        "age": age,
                         "rating_star": rating,
                         "recommended": recommended,
-                        "review": review_content,
+                        "review": review_text,
                         "review_date": review_date,
                         "usage_period": usage_period
                     })
                 except Exception as e:
-                    print(f"[!] Gagal ambil 1 review: {e}")
+                    print(f"[!] Gagal ambil satu review: {e}")
                     continue
 
-            # Klik tombol next halaman review jika ada
+            # Klik tombol next
             try:
-                next_btn = driver.find_element(By.ID, "id_next_page")
-                driver.execute_script("arguments[0].click();", next_btn)
+                next_button = driver.find_element(By.ID, "id_next_page")
+                driver.execute_script("arguments[0].click();", next_button)
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "review-detail"))
+                )
                 page += 1
             except:
-                break  # tidak ada tombol next
+                break
 
         except Exception as e:
-            print(f"[!] Gagal ambil review di halaman {page}: {e}")
+            print(f"[!] Gagal ambil review halaman {page}: {e}")
             break
 
     return reviews

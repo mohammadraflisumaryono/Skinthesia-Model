@@ -60,9 +60,9 @@ def get_product_details(driver, product_url):
         print(f"[!] Deskripsi tidak ditemukan: {e}")
 
     try:
-        detail["reviews"] = scrape_reviews(driver, max_pages=3)  # ambil maksimal 3 halaman
+        reviews = scrape_reviews(driver, max_pages=5)
+        detail["reviews"] = reviews
     except Exception as e:
         print(f"[!] Gagal ambil review: {e}")
-        detail["reviews"] = []
 
     return detail
