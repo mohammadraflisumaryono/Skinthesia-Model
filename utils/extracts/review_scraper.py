@@ -14,58 +14,66 @@ def scrape_reviews(driver, max_pages=5):
         time.sleep(2)
 
         try:
-            # Klik tombol read-more jika ada untuk memperluas komentar
-            read_more_buttons = driver.find_elements(By.CSS_SELECTOR, "span.read-more")
-            for btn in read_more_buttons:
-                try:
-                    driver.execute_script("arguments[0].click();", btn)
-                except:
-                    continue
-
+            # Tunggu sampai review muncul
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "review-card"))
+            )
             soup = BeautifulSoup(driver.page_source, 'html.parser')
-            review_blocks = soup.find_all('div', class_='review-detail d-flex')
+            review_blocks = soup.select("div.review-card")
+
+            print(f"[✓] Halaman {page} berhasil ambil {len(review_blocks)} review")
+
+            if not review_blocks:
+                print(f"[!] Halaman {page} tidak ada review.")
+                break
 
             for block in review_blocks:
                 try:
-                    # Username (optional)
+                    # Username
                     try:
-                        username = block.find('p', class_='username').text.strip()
+                        username = block.select_one("p.profile-username").text.strip()
                     except:
                         username = None
 
-                    # Skin info: oiltype, shade, tone, age
-                    skin_info = block.find('p', class_='skin').text.strip().split(',')
-                    skin_type = skin_info[0].strip() if len(skin_info) > 0 else None
-                    age = skin_info[3].strip() if len(skin_info) > 3 else None
+                    # Age
+                    try:
+                        age = block.select_one("p.profile-age").text.strip()
+                    except:
+                        age = None
+
+                    # Skin Type (ambil dari deskripsi, biasanya format: "Oily, Medium, Neutral")
+                    try:
+                        skin_desc = block.select_one("p.profile-description").text.strip()
+                        skin_type = skin_desc.split(",")[0].strip() if skin_desc else None
+                    except:
+                        skin_type = None
 
                     # Rating
-                    stars = block.find_all('i', class_='icon-ic_big_star_full')
+                    stars = block.select("span.cardrv-starlist i.icon-ic_big_star_full")
                     rating = len(stars)
 
-                    # Recommended
-                    rec_tag = block.find('p', class_='recommend')
-                    if rec_tag:
-                        rec_text = rec_tag.find('b').text.lower()
-                        recommended = "doesn't" not in rec_text
-                    else:
+                    # Recommended?
+                    try:
+                        recommend_text = block.select_one("p.recommend b").text.lower()
+                        recommended = "doesn't" not in recommend_text
+                    except:
                         recommended = None
 
                     # Review text
                     try:
-                        review_text = block.find('p', class_='text-content').text.strip()
+                        review_text = block.select_one("p.text-content").text.strip()
                     except:
                         review_text = None
 
                     # Review date
                     try:
-                        review_date = block.find('p', class_='date review-date').text.strip()
+                        review_date = block.select_one("p.review-date").text.strip()
                     except:
                         review_date = None
 
                     # Usage period
                     try:
-                        info_wrap = block.find('div', class_='information-wrapper')
-                        usage_period = info_wrap.find_all('b')[0].text.strip()
+                        usage_period = block.select_one("div.information-wrapper b").text.strip()
                     except:
                         usage_period = None
 
@@ -80,22 +88,21 @@ def scrape_reviews(driver, max_pages=5):
                         "usage_period": usage_period
                     })
                 except Exception as e:
-                    print(f"[!] Gagal ambil satu review: {e}")
+                    print(f"[!] Gagal parsing satu review: {e}")
                     continue
 
-            # Klik tombol next
+            # Klik next halaman
             try:
                 next_button = driver.find_element(By.ID, "id_next_page")
                 driver.execute_script("arguments[0].click();", next_button)
                 WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "review-detail"))
+                    EC.presence_of_element_located((By.CLASS_NAME, "review-card"))
                 )
                 page += 1
             except:
                 break
-
         except Exception as e:
-            print(f"[!] Gagal ambil review halaman {page}: {e}")
+            print(f"[!] Gagal proses halaman {page}: {e}")
             break
 
     return reviews

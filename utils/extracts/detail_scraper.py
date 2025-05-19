@@ -58,13 +58,13 @@ def get_product_details(driver, product_url):
     try:
         # Ambil deskripsi
         description_container = driver.find_element(By.CLASS_NAME, "product-desc-wrapper")
-        desc_text = description_container.text.strip().replace("Description", "")
+        desc_text = description_container.text.replace("\n", " ").replace("Description", "").strip()
         detail["description"] = desc_text
     except Exception as e:
         print(f"[!] Deskripsi tidak ditemukan: {e}")
 
     try:
-        reviews = scrape_reviews(driver, max_pages=5)
+        reviews = scrape_reviews(driver, max_pages=1)
         detail["reviews"] = reviews
     except Exception as e:
         print(f"[!] Gagal ambil review: {e}")
