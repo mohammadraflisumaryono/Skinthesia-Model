@@ -38,10 +38,10 @@ def run_scraper():
     all_reviews = []
 
     try:
-        categories = get_categories(limit=1)  # ganti sesuai kebutuhan
+        categories = get_categories(limit=10)  # ganti sesuai kebutuhan
         for cat in categories:
             logging.info(f"\n📂 Memproses kategori: {cat['name']} ({cat['url']})")
-            products = get_products_from_category(driver, cat['url'], cat['name'], max_products=1)
+            products = get_products_from_category(driver, cat['url'], cat['name'], max_products=100)
 
             logging.info(f"✅ Produk ditemukan: {len(products)}")
             for i, prod in enumerate(products, 1):
