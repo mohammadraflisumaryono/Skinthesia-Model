@@ -30,8 +30,12 @@ def get_product_details(driver, product_url):
         print(f"[!] Gagal ambil nama/brand: {e}")
 
     try:
-        # Harga
-        price = driver.find_element(By.CLASS_NAME, "product-price").text.strip()
+    # cek apakah elemen harga ada jika tidak ada isi undefined
+        price_element = driver.find_elements(By.CLASS_NAME, "product-price")
+        if len(price_element) == 0:
+            price = "N/A"
+        else:
+            price = driver.find_element(By.CLASS_NAME, "product-price").text.strip()
         detail["price"] = price
     except Exception as e:
         print(f"[!] Gagal ambil harga: {e}")
