@@ -3,7 +3,7 @@
 from selenium.webdriver.common.by import By
 import time
 
-def get_products_from_category(driver, category_url, max_products=100):
+def get_products_from_category(driver, category_url, category_name, max_products=100):
     """
     Scrap daftar produk dari suatu kategori di Female Daily.
     """
@@ -21,8 +21,7 @@ def get_products_from_category(driver, category_url, max_products=100):
 
         for card in product_cards:
             try:
-                name_el = card.find_elements(By.CLASS_NAME, 'fd-body-md-regular')
-                name = name_el[1].text.strip() if len(name_el) > 1 else ""
+                name = card.find_element(By.CSS_SELECTOR, "p.two-line").text.strip()
                 brand = card.find_element(By.CLASS_NAME, 'fd-body-md-bold').text.strip()
                 img = card.find_element(By.TAG_NAME, 'img').get_attribute("src")
                 url = card.get_attribute("href")
@@ -36,7 +35,8 @@ def get_products_from_category(driver, category_url, max_products=100):
                     "image": img,
                     "url": url,
                     "rating": rating,
-                    "total_reviews": total_reviews
+                    "total_reviews": total_reviews,
+                    "category": category_name
                 })
 
             except Exception as e:

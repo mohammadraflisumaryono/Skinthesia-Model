@@ -1,29 +1,68 @@
-# skincare_scraper/extract/detail_scraper.py
-
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from .review_scraper import scrape_reviews  
 import time
 
 def get_product_details(driver, product_url):
     """
-    Scrap detail dari halaman produk individual.
+    Scrape detail dari halaman produk Female Daily.
     """
     driver.get(product_url)
-    time.sleep(1)
+    time.sleep(2)
+
+    detail = {
+        "url": product_url,
+        "name": None,
+        "brand": None,
+        "price": None,
+        "rating": None,
+        "description": None,
+    }
 
     try:
-        name = driver.find_element(By.CLASS_NAME, "product-profile__name").text.strip()
-        brand = driver.find_element(By.CLASS_NAME, "product-profile__brand").text.strip()
-        rating = driver.find_element(By.CLASS_NAME, "product-profile__rating-value").text.strip()
-        reviews = driver.find_element(By.CLASS_NAME, "product-profile__rating-count").text.strip()
-        desc = driver.find_element(By.CLASS_NAME, "product-detail__description").text.strip()
-    except Exception:
-        return None
+        # Nama dan Brand
+        name = driver.find_element(By.CLASS_NAME, "product-name").text.strip()
+        brand = driver.find_element(By.CLASS_NAME, "product-brand").text.strip()
+        detail["name"] = name
+        detail["brand"] = brand
+    except Exception as e:
+        print(f"[!] Gagal ambil nama/brand: {e}")
 
-    return {
-        "name": name,
-        "brand": brand,
-        "rating": rating,
-        "total_reviews": reviews,
-        "description": desc,
-        "url": product_url
-    }
+    try:
+        # Harga
+        price = driver.find_element(By.CLASS_NAME, "product-price").text.strip()
+        detail["price"] = price
+    except Exception as e:
+        print(f"[!] Gagal ambil harga: {e}")
+
+    try:
+        # Rating (angka besar di kiri atas)
+        rating = driver.find_element(By.CSS_SELECTOR, ".data-wrapper.total p").text.strip()
+        detail["rating"] = rating
+    except Exception as e:
+        print(f"[!] Gagal ambil rating: {e}")
+
+    try:
+        # Klik tombol deskripsi jika belum muncul
+        desc_button = driver.find_element(By.ID, "id_button_description")
+        driver.execute_script("arguments[0].click();", desc_button)
+        time.sleep(1)
+    except:
+        pass  # tombol tidak selalu ada
+
+    try:
+        # Ambil deskripsi
+        description_container = driver.find_element(By.CLASS_NAME, "product-desc-wrapper")
+        desc_text = description_container.text.strip().replace("Description", "")
+        detail["description"] = desc_text
+    except Exception as e:
+        print(f"[!] Deskripsi tidak ditemukan: {e}")
+
+    try:
+        detail["reviews"] = scrape_reviews(driver, max_pages=3)  # ambil maksimal 3 halaman
+    except Exception as e:
+        print(f"[!] Gagal ambil review: {e}")
+        detail["reviews"] = []
+
+    return detail
