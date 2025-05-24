@@ -35,6 +35,7 @@ def scrape_reviews(driver, max_pages=5):
 
             for block in review_blocks:
                 try:
+                    # Elements (safe fetch)
                     username_tag = block.select_one("p.profile-username")
                     age_tag = block.select_one("p.profile-age")
                     skin_desc_tag = block.select_one("p.profile-description")
@@ -43,15 +44,38 @@ def scrape_reviews(driver, max_pages=5):
                     review_date_tag = block.select_one("p.review-date")
                     usage_period_tag = block.select_one("div.information-wrapper b")
 
+                    # Extract values safely
+                    username = username_tag.text.strip() if username_tag else None
+                    age = age_tag.text.strip() if age_tag else None
+                    skin_type = (
+                        skin_desc_tag.text.strip().split(",")[0].strip() if skin_desc_tag else None
+                    )
+                    review_text = review_text_tag.text.strip() if review_text_tag else None
+                    review_date = review_date_tag.text.strip() if review_date_tag else None
+                    usage_period = usage_period_tag.text.strip() if usage_period_tag else None
+
+                    # Rating stars (based on full star icons)
+                    rating_star = len(block.select("span.cardrv-starlist i.icon-ic_big_star_full"))
+
+                    # Determine recommended
+                    recommended = None
+                    if recommend_tag:
+                        text = recommend_tag.text.strip().lower()
+                        if "doesn't" in text:
+                            recommended = False
+                        elif "recommends" in text:
+                            recommended = True
+
+                    # Append cleaned review
                     reviews.append({
-                        "username": username_tag.text.strip() if username_tag else None,
-                        "skin_type": skin_desc_tag.text.strip().split(",")[0].strip() if skin_desc_tag else None,
-                        "age": age_tag.text.strip() if age_tag else None,
-                        "rating_star": len(block.select("span.cardrv-starlist i.icon-ic_big_star_full")),
-                        "recommended": None if not recommend_tag else "doesn't" not in recommend_tag.text.lower(),
-                        "review": review_text_tag.text.strip() if review_text_tag else None,
-                        "review_date": review_date_tag.text.strip() if review_date_tag else None,
-                        "usage_period": usage_period_tag.text.strip() if usage_period_tag else None
+                        "username": username,
+                        "skin_type": skin_type,
+                        "age": age,
+                        "rating_star": rating_star,
+                        "recommended": recommended,
+                        "review": review_text,
+                        "review_date": review_date,
+                        "usage_period": usage_period
                     })
 
                 except Exception as e:

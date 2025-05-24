@@ -2,7 +2,6 @@
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import time
 
 def get_products_from_category(driver, category_url, category_name, max_products=100):

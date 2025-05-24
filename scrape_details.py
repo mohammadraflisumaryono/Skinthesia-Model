@@ -95,4 +95,4 @@ def run_all_batches(batch_size=20, pause_per_batch=10, start_from=0, end_at=None
 
 if __name__ == "__main__":
     # Ganti parameter sesuai kebutuhan kamu
-    run_all_batches(batch_size=20, pause_per_batch=20, start_from=0, end_at=100)
+    run_all_batches(batch_size=20, pause_per_batch=20, start_from=0, end_at=None)
