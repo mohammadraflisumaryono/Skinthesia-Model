@@ -44,7 +44,7 @@ def run_all_batches(batch_size=20, pause_per_batch=10, start_from=0, end_at=None
         # Delay sebelum membuka sesi browser baru (fix DevToolsActivePort)
         time.sleep(3)
         options = Options()
-        options.add_argument("--headless")
+        # options.add_argument("--headless")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
 
@@ -78,21 +78,21 @@ def run_all_batches(batch_size=20, pause_per_batch=10, start_from=0, end_at=None
         logging.info("🧹 Browser ditutup untuk batch ini.")
 
         if details:
-            pd.DataFrame(details).to_csv("data/tmp_details.csv", mode='a', header=not os.path.exists("data/tmp_details.csv"), index=False, encoding='utf-8-sig')
+            pd.DataFrame(details).to_csv("data-final 0-599/tmp_details.csv", mode='a', header=not os.path.exists("data-final 0-599/tmp_details.csv"), index=False, encoding='utf-8-sig')
         if reviews:
-            pd.DataFrame(reviews).to_csv("data/tmp_reviews.csv", mode='a', header=not os.path.exists("data/tmp_reviews.csv"), index=False, encoding='utf-8-sig')
+            pd.DataFrame(reviews).to_csv("data-final 0-599/tmp_reviews.csv", mode='a', header=not os.path.exists("data-final 0-599/tmp_reviews.csv"), index=False, encoding='utf-8-sig')
 
         logging.info(f"💾 Batch disimpan: {len(details)} detail, {len(reviews)} review")
 
         # Update full merge file
-        if os.path.exists("data/tmp_details.csv"):
-            pd.read_csv("data/tmp_details.csv").drop_duplicates().to_csv("data/products_detail.csv", index=False, encoding="utf-8-sig")
-        if os.path.exists("data/tmp_reviews.csv"):
-            pd.read_csv("data/tmp_reviews.csv").drop_duplicates().to_csv("data/reviews.csv", index=False, encoding="utf-8-sig")
+        if os.path.exists("data-final 0-599/tmp_details.csv"):
+            pd.read_csv("data-final 0-599/tmp_details.csv").drop_duplicates().to_csv("data-final 0-599/products_detail.csv", index=False, encoding="utf-8-sig")
+        if os.path.exists("data-final 0-599/tmp_reviews.csv"):
+            pd.read_csv("data-final 0-599/tmp_reviews.csv").drop_duplicates().to_csv("data-final 0-599/reviews.csv", index=False, encoding="utf-8-sig")
 
         logging.info(f"⏳ Menunggu {pause_per_batch} detik sebelum batch selanjutnya...")
         time.sleep(pause_per_batch)
 
 if __name__ == "__main__":
     # Ganti parameter sesuai kebutuhan kamu
-    run_all_batches(batch_size=20, pause_per_batch=20, start_from=0, end_at=None)
+    run_all_batches(batch_size=20, pause_per_batch=20, start_from=0, end_at=100)
