@@ -591,12 +591,15 @@ def transform_data(df: pd.DataFrame, logger: logging.Logger) -> pd.DataFrame:
         try:
             df['price'] = (
                 df['price']
-                .astype(str)  # pastikan tipe data string
-                .str.replace(r'Rp\.?\s*', '', regex=True)  # hapus 'Rp.' atau 'Rp '
-                .str.replace('.', '', regex=False)  # hapus pemisah ribuan
-                .str.replace(',', '', regex=False)  # kalau ada koma, hapus juga
-                .astype(int)  # ubah ke integer
+                .astype(str)
+                .str.replace(r'Rp\.?\s*', '', regex=True)
+                .str.replace('.', '', regex=False)
+                .str.replace(',', '', regex=False)
+                .replace('nan', np.nan)  # tangani string 'nan'
             )
+
+            df['price'] = pd.to_numeric(df['price'], errors='coerce').astype('Int64')  # nullable int
+
         except Exception as e:
             logger.error(f"Failed to clean 'price' column: {str(e)}", exc_info=True)
             raise
